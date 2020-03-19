@@ -21,7 +21,7 @@ HOMEPAGE="https://www.darwinsys.com/file/"
 
 LICENSE="BSD-2"
 SLOT="0"
-IUSE="bzip2 lzma python seccomp static-libs zlib"
+IUSE="bzip2 lzma python static-libs zlib"
 REQUIRED_USE="python? ( ${PYTHON_REQUIRED_USE} )"
 
 DEPEND="
@@ -33,8 +33,7 @@ DEPEND="
 	)
 	zlib? ( >=sys-libs/zlib-1.2.8-r1[${MULTILIB_USEDEP}] )"
 RDEPEND="${DEPEND}
-	python? ( !dev-python/python-magic )
-	seccomp? ( sys-libs/libseccomp[${MULTILIB_USEDEP}] )"
+	python? ( !dev-python/python-magic )"
 
 src_prepare() {
 	default
@@ -49,10 +48,10 @@ src_prepare() {
 
 multilib_src_configure() {
 	local myeconfargs=(
+		--disable-libseccomp
 		--enable-fsect-man5
 		$(use_enable bzip2 bzlib)
 		$(use_enable lzma xzlib)
-		$(use_enable seccomp libseccomp)
 		$(use_enable static-libs static)
 		$(use_enable zlib)
 	)

@@ -1,19 +1,19 @@
-# Copyright 1999-2018 Gentoo Foundation
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=7
 
-PYTHON_COMPAT=( python2_7 python3_{4,5,6} pypy )
+PYTHON_COMPAT=( python2_7 python3_{6,7,8} )
 DISTUTILS_OPTIONAL=1
 
-inherit distutils-r1 libtool ltprune toolchain-funcs multilib-minimal
+inherit distutils-r1 libtool toolchain-funcs multilib-minimal
 
 if [[ ${PV} == "9999" ]] ; then
 	EGIT_REPO_URI="https://github.com/glensc/file.git"
 	inherit autotools git-r3
 else
 	SRC_URI="ftp://ftp.astron.com/pub/file/${P}.tar.gz"
-	KEYWORDS="alpha amd64 arm arm64 hppa ia64 m68k ~mips ppc ppc64 s390 sh sparc x86 ~ppc-aix ~x64-cygwin ~amd64-fbsd ~x86-fbsd ~amd64-linux ~x86-linux ~ppc-macos ~x64-macos ~x86-macos ~m68k-mint ~sparc-solaris ~sparc64-solaris ~x64-solaris ~x86-solaris"
+	KEYWORDS="~alpha amd64 arm arm64 hppa ia64 m68k ~mips ppc ppc64 ~riscv s390 sh sparc x86 ~ppc-aix ~x64-cygwin ~amd64-linux ~x86-linux ~ppc-macos ~x64-macos ~x86-macos ~m68k-mint ~sparc-solaris ~sparc64-solaris ~x64-solaris ~x86-solaris"
 fi
 
 DESCRIPTION="identify a file's format by scanning binary data for patterns"
@@ -33,7 +33,7 @@ DEPEND="
 RDEPEND="${DEPEND}
 	python? ( !dev-python/python-magic )"
 
-PATCHES=( "${FILESDIR}"/${P}-CVE-2018-10360.patch )
+PATCHES=( "${FILESDIR}"/${P}-CVE-2019-18218.patch )
 
 src_prepare() {
 	default
@@ -42,7 +42,8 @@ src_prepare() {
 	elibtoolize
 
 	# don't let python README kill main README #60043
-	mv python/README{,.python} || die
+	mv python/README.md python/README.python.md || die
+	sed 's@README.md@README.python.md@' -i python/setup.py || die #662090
 }
 
 multilib_src_configure() {
@@ -63,7 +64,7 @@ src_configure() {
 		mkdir -p "${WORKDIR}"/build || die
 		cd "${WORKDIR}"/build || die
 		tc-export_build_env BUILD_C{C,XX}
-		ECONF_SOURCE=${S} \
+		ECONF_SOURCE="${S}" \
 		ac_cv_header_zlib_h=no \
 		ac_cv_lib_z_gzopen=no \
 		CHOST=${CBUILD} \
@@ -123,5 +124,5 @@ multilib_src_install_all() {
 		cd python || die
 		distutils-r1_src_install
 	fi
-	prune_libtool_files
+	find "${ED}" -type f -name "*.la" -delete || die
 }
